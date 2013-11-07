@@ -8,6 +8,16 @@ EventProxy.prototype = {
 		list.push(fn);
 		return this;
 	},
+	
+	once: function (type, fn) {
+		var that = this,
+			_fn = function () {
+				fn.apply(null, arguments);
+				that.off(type, _fn);
+			};
+		this.on(type, _fn);
+		return this;
+	},
 
 	off: function (type, fn) {
 		var list = this._events[type] = this._events[type] || [];
