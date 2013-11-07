@@ -1,4 +1,8 @@
 var EventProxy = function () {
+	if (!(this instanceof EventProxy)) {
+		return new EventProxy();
+	}
+	
 	this._events = [];
 };
 
