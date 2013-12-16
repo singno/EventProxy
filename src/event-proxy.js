@@ -4,7 +4,7 @@
     if (typeof (module) !== 'undefined' && module.exports) { // CommonJS
         module.exports = factory(root);
     } else if (typeof (define) === 'function' && define.amd) { // AMD
-        define(function () {
+        define(ns, function () {
             return factory(root);
         });
     } else {
