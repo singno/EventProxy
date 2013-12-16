@@ -23,6 +23,20 @@ EventProxy.prototype = {
 		return this;
 	},
 
+	many: function (type, times, fn) {
+		var counter = 0,
+			that = this,
+			_fn = function () {
+				counter++;
+				fn.apply(type, arguments);
+				if (counter >= times) {
+					that.off(type, _fn);
+				}
+			};
+		this.on(type, _fn);
+		return this;
+	},
+
 	off: function (type, fn) {
 		var list = this._events[type] = this._events[type] || [];
 		for (var i = 0, len = list.length; i < len; i++) {
@@ -59,9 +73,10 @@ EventProxy.prototype = {
 			fns = {},
 			that = this;
 
-		var isArray = function (obj) {
-			return Object.prototype.toString.call(obj) === '[object Array]';
-		};
+		// 如果最后的参数不是函数，认为输入错误，不做处理
+		if (Object.prototype.toString.call(finalCallback) !== '[object Function]') {
+			return ;
+		}
 
 		var notify = function () {
 			count++;

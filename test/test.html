@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>test EventProxy</title>
+	<link rel="stylesheet" type="text/css" href="./qunit.css" />
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	<script src="./qunit.js"></script>
+	<script src="../src/event-proxy.js"></script>
+	<script>
+		var proxy = EventProxy();
+
+		function testAdd (name, value) {	
+			var counter = 0;
+
+			if (name === 'many') {
+				proxy[name](name, value, function () {
+					counter++;
+				});
+			} else {
+				proxy[name](name, function () {
+					counter++;
+				});
+			}
+			
+
+			test(name, function () {
+				proxy.trigger(name);
+				proxy.trigger(name);
+				proxy.trigger(name);
+				ok(counter === value, 'Passed!');
+			});
+		}
+
+		// test on && trigger
+		testAdd('on', 3);
+
+		// test once
+		testAdd('once', 1);
+
+		// test many
+		testAdd('many', 2);
+
+		// test off
+		var offCounter = 0;
+		function testOff () {
+			offCounter++
+		}
+		proxy.on('offTest', testOff);
+		proxy.off('offTest', testOff);
+		proxy.trigger('offTest');
+		proxy.trigger('offTest');
+		test('offTest', function () {
+			ok(offCounter === 0, 'Passed!');
+		});
+
+		// test assign
+		var doneArgs = [];
+
+		function testAssign (name, val1, val2, val3) {
+			test(name, function () {
+				deepEqual(val1, doneArgs[0], 'val1 is correct');
+				deepEqual(val2, doneArgs[1], 'val2 is correct');
+				deepEqual(val3, doneArgs[2], 'val3 is correct');
+				ok(val1 instanceof Array, 'val1 is an array');
+				ok(val2 === +val2, 'val2 is a number');
+			});
+		}
+
+		proxy.assign('done1', 'done2', 'done3', function (val1, val2, val3) {
+			testAssign('first assign', val1, val2, val3);
+
+			proxy.assign('done1', 'done2', 'done3', function (val1, val2, val3) {
+				testAssign('second assign', val1, val2, val3);
+			});
+
+			// 再次触发
+			triggerAssign();
+		});
+
+		proxy.assign('done2', 'done3', function (val2, val3) {
+			test('assign no conflict', function () {
+				deepEqual(val2, doneArgs[1], 'val1 is correct');
+				deepEqual(val3, doneArgs[2], 'val2 is correct');
+			});
+		});
+
+		function slice (arg) {
+			return [].slice.call(arg);
+		}
+
+		function triggerAssign() {
+			setTimeout(function () {
+				doneArgs[0] = [3, 2];
+				proxy.trigger('done1', 3, 2);
+			}, 500);
+
+			setTimeout(function () {
+				doneArgs[1] = 20;
+				proxy.trigger('done2', 20);
+			}, 100);
+
+			setTimeout(function () {
+				doneArgs[2] = 100;
+				proxy.trigger('done3', 100);
+			}, 100);
+		}
+
+		triggerAssign();
+
+		// test assign incorrect input
+		proxy.assign('done1', 'done2');  // will not throw error
+	</script>
+</body>
+</html>
