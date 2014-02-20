@@ -17,7 +17,7 @@
 			return new EventProxy();
 		}
 		
-		this._events = [];
+		this._events = {};
 	};
 
 	EventProxy.prototype = {
@@ -52,13 +52,20 @@
 		},
 
 		off: function (type, fn) {
-			var list = this._events[type] = this._events[type] || [];
-			for (var i = 0, len = list.length; i < len; i++) {
-				if (list[i] === fn) {
-					list.splice(i, 1);
-					break;
+			if (!type) {
+				this._events = [];
+			} else if (!fn) {
+				delete this._events[type];
+			} else {
+				var list = this._events[type] = this._events[type] || [];
+				for (var i = 0, len = list.length; i < len; i++) {
+					if (list[i] === fn) {
+						list.splice(i, 1);
+						break;
+					}
 				}
 			}
+
 			return this;
 		},
 
@@ -67,6 +74,7 @@
 				args = [].slice.call(arguments, 1),
 				toStr = Object.prototype.toString,
 				fn;
+
 			list = list.slice(0); // 拷贝一份，避免trigger的fn中调用off后出现错误
 			for (var i = 0, len = list.length; i < len; i++) {
 				fn = list[i];
@@ -74,6 +82,7 @@
 					fn.apply(null, args);
 				}
 			}
+			
 			return this;
 		},
 
